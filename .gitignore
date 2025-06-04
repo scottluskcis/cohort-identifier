@@ -127,3 +127,7 @@ logs
 # Temporary folders
 tmp/
 temp/
+
+# customer data
+data/
+output/
