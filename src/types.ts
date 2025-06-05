@@ -1,4 +1,4 @@
-export interface AnalysisDetail {
+export interface AllAnalysisDetails {
   Org_Name: string;
   Repo_Name: string;
   Is_Empty: string;
@@ -90,7 +90,7 @@ export interface CodespaceDetail {
   "Created At": string;
 }
 
-export interface AnalysisFormatted {
+export interface AnalysisDetails {
   Org_Name: string;
   Repo_Name: string;
   isArchived: string;

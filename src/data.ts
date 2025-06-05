@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
 import { parse } from "csv-parse/sync";
 import {
-  AnalysisDetail,
+  AllAnalysisDetails,
   PackageDetail,
   CodespaceDetail,
-  AnalysisFormatted,
+  AnalysisDetails,
 } from "./types.js";
 
 /**
@@ -31,12 +31,12 @@ function readCsvFile<T>(filePath: string): T[] {
 /**
  * Reads GHEC analysis data from CSV file
  * @param filePath - Path to the ghec-analysis.csv file
- * @returns Array of AnalysisDetail objects
+ * @returns Array of AllAnalysisDetails objects
  */
 export function readGhecAnalysis(
   filePath: string = "data/ghec-analysis.csv"
-): AnalysisDetail[] {
-  return readCsvFile<AnalysisDetail>(filePath);
+): AllAnalysisDetails[] {
+  return readCsvFile<AllAnalysisDetails>(filePath);
 }
 
 /**
@@ -64,22 +64,22 @@ export function readCodespacesDetail(
 /**
  * Reads analysis formatted data from CSV file
  * @param filePath - Path to the combined-formatted-analysis.csv file
- * @returns Array of AnalysisFormatted objects
+ * @returns Array of AnalysisDetails objects
  */
 export function readAnalysisFormatted(
   filePath: string = "data/combined-formatted-analysis.csv"
-): AnalysisFormatted[] {
-  return readCsvFile<AnalysisFormatted>(filePath);
+): AnalysisDetails[] {
+  return readCsvFile<AnalysisDetails>(filePath);
 }
 
 /**
  * Interface for the combined data object
  */
 export interface LoadedData {
-  analysisDetails: AnalysisDetail[];
+  analysisDetails: AllAnalysisDetails[];
   packageDetails: PackageDetail[];
   codespaceDetails: CodespaceDetail[];
-  analysisFormatted: AnalysisFormatted[];
+  analysisFormatted: AnalysisDetails[];
 }
 
 /**
