@@ -11,6 +11,12 @@ import {
 // CONFIGURATION SETTINGS
 // =============================================================================
 
+// NOTES
+// should we look at and consider GitHub teams as part of this analysis? Will it be useful for grouping or even useful at all?
+// only ones using features not available in Proxima are hard blockers
+// KNOWN COHORTS - Clean, Migration issues but no feature gap, Proxima Feature Gap Based (break feature gaps into separate cohorts),
+// to indicate: some level of combinations too, some may have multi feature gaps
+
 /**
  * Configuration for migration analysis weights and thresholds
  */
@@ -18,11 +24,11 @@ const CONFIG = {
   // Weight values for different migration blockers (higher = more complex)
   WEIGHTS: {
     APP_INSTALLATIONS: 10,
-    GIT_LFS_OBJECTS: 8,
+    GIT_LFS_OBJECTS: 8, // IGNORE - this is covered now and shouldn't be part of the weight
     PACKAGES: 9,
     PROJECTS: 7,
-    CUSTOM_PROPERTIES: 6,
-    RULESETS: 6,
+    CUSTOM_PROPERTIES: 6, // IGNORE - this is covered now and shouldn't be part of the weight
+    RULESETS: 6, // IGNORE - this is covered now and shouldn't be part of the weight
     SECRETS: 5,
     ENVIRONMENTS: 4,
     SELF_HOSTED_RUNNERS: 8,
