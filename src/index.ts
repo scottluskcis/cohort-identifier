@@ -3,16 +3,18 @@
  */
 
 import { loadData } from "./data.js";
+import { runCohortAnalysis } from "./analysis.js";
 
 /**
  * Main entry point for the cohort-identifier application
  */
-
 export function main(): void {
-  // console.log("Welcome to cohort-identifier!");
-  // console.log("This is a TypeScript ESM project.");
+  console.log("Welcome to cohort-identifier!");
+  console.log(
+    "This tool analyzes GitHub repositories and assigns them to migration cohorts.\n"
+  );
 
-  // Load all CSV data
+  // Load and display data summary
   try {
     const data = loadData();
     console.log("Data loaded successfully:");
@@ -22,8 +24,13 @@ export function main(): void {
     console.log(
       `- Analysis Formatted: ${data.analysisFormatted.length} records`
     );
+    console.log("");
+
+    // Run the cohort analysis
+    runCohortAnalysis(data);
   } catch (error) {
-    console.error("Failed to load data:", error);
+    console.error("Failed to run analysis:", error);
+    process.exit(1);
   }
 }
 
