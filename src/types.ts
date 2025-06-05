@@ -89,3 +89,41 @@ export interface CodespaceDetail {
   "Last Used At": string;
   "Created At": string;
 }
+
+export interface AnalysisFormatted {
+  Org_Name: string;
+  Repo_Name: string;
+  isArchived: string;
+  has_external_collaborators: string;
+  issues_linked_to_projects: string;
+  unique_projects_linked_by_issues: string;
+  projects_linked_to_repo: string;
+  app_installations: string;
+  "repository-custom-properties": string;
+  "repository-forks": string;
+  "repository-rulesets": string;
+  watchers: string;
+  "repository-code-scanning-analyses": string;
+  "repository-webhooks": string;
+  "repository-code-scanning-alerts": string;
+  "repository-secret-scanning-alerts": string;
+  "repository-actions-workflow-runs": string;
+  "repository-code-scanning-default-setup": string;
+  "repository-dependabot-alerts": string;
+  "repository-packages": string;
+  "repository-releases-gt-5gb": string;
+  "repository-disk-usage": string;
+  "repository-deployments": string;
+  "repository-environments": string;
+  "git-lfs-objects": string;
+  "repository-actions-secrets": string;
+  "repository-actions-self-hosted-runners": string;
+  "repository-dependabot-secrets": string;
+  "repository-actions-variables": string;
+  "git-submodules": string;
+  "repository-discussions": string;
+  "repository-deploy-keys": string;
+  "repository-pages-customdomain": string;
+  "repository-pinned-issues": string;
+  has_unmigratable: string;
+}

@@ -1,6 +1,11 @@
 import { readFileSync } from "fs";
 import { parse } from "csv-parse/sync";
-import { AnalysisDetail, PackageDetail, CodespaceDetail } from "./types.js";
+import {
+  AnalysisDetail,
+  PackageDetail,
+  CodespaceDetail,
+  AnalysisFormatted,
+} from "./types.js";
 
 /**
  * Generic function to read and parse CSV files
@@ -57,12 +62,24 @@ export function readCodespacesDetail(
 }
 
 /**
+ * Reads analysis formatted data from CSV file
+ * @param filePath - Path to the combined-formatted-analysis.csv file
+ * @returns Array of AnalysisFormatted objects
+ */
+export function readAnalysisFormatted(
+  filePath: string = "data/combined-formatted-analysis.csv"
+): AnalysisFormatted[] {
+  return readCsvFile<AnalysisFormatted>(filePath);
+}
+
+/**
  * Interface for the combined data object
  */
 export interface LoadedData {
   analysisDetails: AnalysisDetail[];
   packageDetails: PackageDetail[];
   codespaceDetails: CodespaceDetail[];
+  analysisFormatted: AnalysisFormatted[];
 }
 
 /**
@@ -74,11 +91,13 @@ export function loadData(): LoadedData {
     const analysisDetails = readGhecAnalysis();
     const packageDetails = readPackageDetail();
     const codespaceDetails = readCodespacesDetail();
+    const analysisFormatted = readAnalysisFormatted();
 
     return {
       analysisDetails,
       packageDetails,
       codespaceDetails,
+      analysisFormatted,
     };
   } catch (error) {
     console.error("Error loading data:", error);

@@ -19,6 +19,9 @@ export function main(): void {
     console.log(`- Analysis Details: ${data.analysisDetails.length} records`);
     console.log(`- Package Details: ${data.packageDetails.length} records`);
     console.log(`- Codespace Details: ${data.codespaceDetails.length} records`);
+    console.log(
+      `- Analysis Formatted: ${data.analysisFormatted.length} records`
+    );
   } catch (error) {
     console.error("Failed to load data:", error);
   }
