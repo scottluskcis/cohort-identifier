@@ -5,6 +5,7 @@ import {
   PackageDetail,
   CodespaceDetail,
   AnalysisDetails,
+  MacOsRunnerDetail,
 } from "./types.js";
 
 /**
@@ -73,6 +74,17 @@ export function readAnalysisFormatted(
 }
 
 /**
+ * Reads macOS runner details from CSV file
+ * @param filePath - Path to the macos-runners.csv file
+ * @returns Array of MacOsRunnerDetail objects
+ */
+export function readMacOsRunnerDetail(
+  filePath: string = "data/macos-runners.csv"
+): MacOsRunnerDetail[] {
+  return readCsvFile<MacOsRunnerDetail>(filePath);
+}
+
+/**
  * Interface for the combined data object
  */
 export interface LoadedData {
@@ -80,6 +92,7 @@ export interface LoadedData {
   packageDetails: PackageDetail[];
   codespaceDetails: CodespaceDetail[];
   analysisFormatted: AnalysisDetails[];
+  macOsRunnerDetails: MacOsRunnerDetail[];
 }
 
 /**
@@ -92,12 +105,14 @@ export function loadData(): LoadedData {
     const packageDetails = readPackageDetail();
     const codespaceDetails = readCodespacesDetail();
     const analysisFormatted = readAnalysisFormatted();
+    const macOsRunnerDetails = readMacOsRunnerDetail();
 
     return {
       analysisDetails,
       packageDetails,
       codespaceDetails,
       analysisFormatted,
+      macOsRunnerDetails,
     };
   } catch (error) {
     console.error("Error loading data:", error);

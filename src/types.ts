@@ -127,3 +127,13 @@ export interface AnalysisDetails {
   "repository-pinned-issues": string;
   has_unmigratable: string;
 }
+
+export interface MacOsRunnerDetail {
+  Workflow: string;
+  "Source repository": string;
+  "Total minutes": string;
+  "Workflow runs": string;
+  Jobs: string;
+  "Runner type": string;
+  "Runtime OS": string;
+}

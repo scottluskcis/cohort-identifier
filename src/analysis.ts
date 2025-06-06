@@ -5,6 +5,7 @@ import {
   PackageDetail,
   CodespaceDetail,
   AnalysisDetails,
+  MacOsRunnerDetail,
 } from "./types.js";
 
 // =============================================================================
@@ -39,6 +40,7 @@ const CONFIG = {
     RELEASES_LARGE: 7,
     CODESPACES: 6,
     MAVEN_PACKAGES: 8,
+    MACOS_RUNNERS: 9,
   },
 
   // Thresholds for cohort assignment
@@ -53,6 +55,7 @@ const CONFIG = {
     INCLUDE_ARCHIVED_IN_MAIN_ANALYSIS: false,
     SEPARATE_MAVEN_COHORT: true,
     SEPARATE_CODESPACE_COHORT: true,
+    SEPARATE_MACOS_COHORT: true,
   },
 };
 
@@ -126,6 +129,16 @@ function hasCodespaces(
   codespaceDetails: CodespaceDetail[]
 ): boolean {
   return codespaceDetails.some((cs) => cs["Repository Name"] === repoName);
+}
+
+/**
+ * Check if a repository has macOS runners usage
+ */
+function hasMacOsRunners(
+  repoName: string,
+  macOsRunnerDetails: MacOsRunnerDetail[]
+): boolean {
+  return macOsRunnerDetails.some((runner) => runner["Source repository"] === repoName);
 }
 
 /**
@@ -297,11 +310,17 @@ function assignCohort(
   repo: AllAnalysisDetails | AnalysisDetails,
   migrationWeight: number,
   hasMaven: boolean,
-  hasCodespace: boolean
+  hasCodespace: boolean,
+  hasMacOs: boolean
 ): string {
   // Archived repositories get their own cohort
   if (isArchived(repo)) {
     return "ARCHIVED";
+  }
+
+  // macOS runners get separate cohort if enabled
+  if (CONFIG.FEATURES.SEPARATE_MACOS_COHORT && hasMacOs) {
+    return "MACOS_RUNNERS";
   }
 
   // Maven packages get separate cohort if enabled
@@ -346,6 +365,8 @@ function generateSummary(
       return "Archived repository - lower migration priority";
     case "CLEAN":
       return "Clean repository with no migration blockers - can migrate easily";
+    case "MACOS_RUNNERS":
+      return "Repository with macOS runners - requires runner migration planning";
     case "MAVEN_PACKAGES":
       return "Repository with Maven packages - requires package migration planning";
     case "CODESPACES":
@@ -382,8 +403,9 @@ export function analyzeRepositories(data: LoadedData): CohortResult[] {
     const migrationReasons = getMigrationReasons(repo);
     const hasMaven = hasMavenPackages(repo.Repo_Name, data.packageDetails);
     const hasCodespace = hasCodespaces(repo.Repo_Name, data.codespaceDetails);
+    const hasMacOs = hasMacOsRunners(repo.Repo_Name, data.macOsRunnerDetails);
 
-    // Add Maven and Codespaces to reasons if present
+    // Add Maven, Codespaces, and macOS runners to reasons if present
     const allReasons = [...migrationReasons];
     if (hasMaven) {
       allReasons.push(`Maven packages detected`);
@@ -391,8 +413,11 @@ export function analyzeRepositories(data: LoadedData): CohortResult[] {
     if (hasCodespace) {
       allReasons.push(`Codespaces usage detected`);
     }
+    if (hasMacOs) {
+      allReasons.push(`macOS runners detected`);
+    }
 
-    const cohort = assignCohort(repo, migrationWeight, hasMaven, hasCodespace);
+    const cohort = assignCohort(repo, migrationWeight, hasMaven, hasCodespace, hasMacOs);
     const summary = generateSummary(cohort, allReasons, migrationWeight);
 
     results.push({
