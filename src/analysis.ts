@@ -6,6 +6,7 @@ import {
   CodespaceDetail,
   AnalysisDetails,
   MacOsRunnerDetail,
+  CohortDetail,
 } from "./types.js";
 
 // =============================================================================
@@ -25,11 +26,11 @@ const CONFIG = {
   // Weight values for different migration blockers (higher = more complex)
   WEIGHTS: {
     APP_INSTALLATIONS: 10,
-    GIT_LFS_OBJECTS: 8, // IGNORE - this is covered now and shouldn't be part of the weight
+    GIT_LFS_OBJECTS: 1, // IGNORE - this is covered now and shouldn't be part of the weight
     PACKAGES: 9,
     PROJECTS: 7,
-    CUSTOM_PROPERTIES: 6, // IGNORE - this is covered now and shouldn't be part of the weight
-    RULESETS: 6, // IGNORE - this is covered now and shouldn't be part of the weight
+    CUSTOM_PROPERTIES: 1, // IGNORE - this is covered now and shouldn't be part of the weight
+    RULESETS: 1, // IGNORE - this is covered now and shouldn't be part of the weight
     SECRETS: 5,
     ENVIRONMENTS: 4,
     SELF_HOSTED_RUNNERS: 8,
@@ -543,6 +544,16 @@ export function runCohortAnalysis(data: LoadedData): void {
     writeFileSync(outputPath, csvContent, "utf-8");
     console.log(`Results exported to ${outputPath}`);
 
+    // Generate detailed analysis
+    console.log("Generating detailed analysis...");
+    const detailedResults = analyzeRepositoriesDetailed(data);
+    const detailedCsvContent = exportDetailedToCsv(detailedResults);
+
+    // Write detailed results to file
+    const detailedOutputPath = "output/cohort-analysis-detailed.csv";
+    writeFileSync(detailedOutputPath, detailedCsvContent, "utf-8");
+    console.log(`Detailed results exported to ${detailedOutputPath}`);
+
     // Print summary to console
     console.log("\n=== COHORT SUMMARY ===");
     for (const summary of summaries) {
@@ -556,4 +567,167 @@ export function runCohortAnalysis(data: LoadedData): void {
     console.error("Error during analysis:", error);
     throw error;
   }
+}
+
+// =============================================================================
+// DETAILED ANALYSIS FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if repository has specific feature categories (for boolean flags)
+ */
+function hasFeatureFlags(
+  repo: AllAnalysisDetails | AnalysisDetails,
+  hasMaven: boolean,
+  hasCodespace: boolean,
+  hasMacOs: boolean
+): {
+  HAS_APP_INSTALLATIONS: boolean;
+  HAS_GIT_LFS_OBJECTS: boolean;
+  HAS_PACKAGES: boolean;
+  HAS_PROJECTS: boolean;
+  HAS_CUSTOM_PROPERTIES: boolean;
+  HAS_RULESETS: boolean;
+  HAS_SECRETS: boolean;
+  HAS_ENVIRONMENTS: boolean;
+  HAS_SELF_HOSTED_RUNNERS: boolean;
+  HAS_WEBHOOKS: boolean;
+  HAS_DISCUSSIONS: boolean;
+  HAS_DEPLOY_KEYS: boolean;
+  HAS_PAGES_CUSTOM_DOMAIN: boolean;
+  HAS_RELEASES_LARGE: boolean;
+  HAS_CODESPACES: boolean;
+  HAS_MAVEN_PACKAGES: boolean;
+  HAS_MACOS_RUNNERS: boolean;
+} {
+  return {
+    HAS_APP_INSTALLATIONS: toNumber(repo.app_installations) > 0,
+    HAS_GIT_LFS_OBJECTS: toNumber(repo["git-lfs-objects"]) > 0,
+    HAS_PACKAGES: toNumber(repo["repository-packages"]) > 0,
+    HAS_PROJECTS: toNumber(repo.projects_linked_to_repo) > 0 || toNumber(repo.issues_linked_to_projects) > 0,
+    HAS_CUSTOM_PROPERTIES: toNumber(repo["repository-custom-properties"]) > 0,
+    HAS_RULESETS: toNumber(repo["repository-rulesets"]) > 0,
+    HAS_SECRETS: toNumber(repo["repository-actions-secrets"]) > 0 || toNumber(repo["repository-dependabot-secrets"]) > 0,
+    HAS_ENVIRONMENTS: toNumber(repo["repository-environments"]) > 0,
+    HAS_SELF_HOSTED_RUNNERS: toNumber(repo["repository-actions-self-hosted-runners"]) > 0,
+    HAS_WEBHOOKS: toNumber(repo["repository-webhooks"]) > 0,
+    HAS_DISCUSSIONS: toNumber(repo["repository-discussions"]) > 0,
+    HAS_DEPLOY_KEYS: toNumber(repo["repository-deploy-keys"]) > 0,
+    HAS_PAGES_CUSTOM_DOMAIN: toNumber(repo["repository-pages-customdomain"]) > 0,
+    HAS_RELEASES_LARGE: "repository-releases-gt-5gb" in repo && toNumber(repo["repository-releases-gt-5gb"]) > 0,
+    HAS_CODESPACES: hasCodespace,
+    HAS_MAVEN_PACKAGES: hasMaven,
+    HAS_MACOS_RUNNERS: hasMacOs,
+  };
+}
+
+/**
+ * Count feature gaps (MAVEN_PACKAGES, CODESPACES, MACOS_RUNNERS)
+ */
+function countFeatureGaps(
+  hasMaven: boolean,
+  hasCodespace: boolean,
+  hasMacOs: boolean
+): number {
+  let count = 0;
+  if (hasMaven) count++;
+  if (hasCodespace) count++;
+  if (hasMacOs) count++;
+  return count;
+}
+
+/**
+ * Analyze repositories and generate detailed cohort data
+ */
+export function analyzeRepositoriesDetailed(data: LoadedData): CohortDetail[] {
+  const results: CohortDetail[] = [];
+
+  // Use analysisFormatted if available, otherwise fall back to analysisDetails
+  const repositories =
+    data.analysisFormatted.length > 0
+      ? data.analysisFormatted
+      : data.analysisDetails;
+
+  for (const repo of repositories) {
+    const migrationWeight = calculateMigrationWeight(repo);
+    const migrationReasons = getMigrationReasons(repo);
+    const hasMaven = hasMavenPackages(repo.Repo_Name, data.packageDetails);
+    const hasCodespace = hasCodespaces(repo.Repo_Name, data.codespaceDetails);
+    const hasMacOs = hasMacOsRunners(repo.Repo_Name, data.macOsRunnerDetails);
+
+    // Add Maven, Codespaces, and macOS runners to reasons if present
+    const allReasons = [...migrationReasons];
+    if (hasMaven) {
+      allReasons.push(`Maven packages detected`);
+    }
+    if (hasCodespace) {
+      allReasons.push(`Codespaces usage detected`);
+    }
+    if (hasMacOs) {
+      allReasons.push(`macOS runners detected`);
+    }
+
+    const cohort = assignCohort(
+      repo,
+      migrationWeight,
+      hasMaven,
+      hasCodespace,
+      hasMacOs
+    );
+    const summary = generateSummary(cohort, allReasons, migrationWeight);
+    const featureFlags = hasFeatureFlags(repo, hasMaven, hasCodespace, hasMacOs);
+    const featureGapCount = countFeatureGaps(hasMaven, hasCodespace, hasMacOs);
+
+    // Calculate cohort-specific weight (different from migration weight)
+    let cohortWeight = migrationWeight;
+    if (hasMaven) cohortWeight += CONFIG.WEIGHTS.MAVEN_PACKAGES;
+    if (hasCodespace) cohortWeight += CONFIG.WEIGHTS.CODESPACES;
+    if (hasMacOs) cohortWeight += CONFIG.WEIGHTS.MACOS_RUNNERS;
+
+    results.push({
+      repositoryName: repo.Repo_Name,
+      cohort,
+      cohortWeight,
+      migrationWeight,
+      migrationReasons: allReasons.length > 0 ? allReasons.join("; ") : "None",
+      summary,
+      featureGapCount,
+      ...featureFlags,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Export detailed results to CSV format
+ */
+export function exportDetailedToCsv(results: CohortDetail[]): string {
+  let csv = "";
+
+  // Add CSV header
+  csv += "Repository Name,Cohort,Cohort Weight,Migration Weight,Migration Reasons,Summary,Feature Gap Count,";
+  csv += "HAS_APP_INSTALLATIONS,HAS_GIT_LFS_OBJECTS,HAS_PACKAGES,HAS_PROJECTS,HAS_CUSTOM_PROPERTIES,HAS_RULESETS,";
+  csv += "HAS_SECRETS,HAS_ENVIRONMENTS,HAS_SELF_HOSTED_RUNNERS,HAS_WEBHOOKS,HAS_DISCUSSIONS,HAS_DEPLOY_KEYS,";
+  csv += "HAS_PAGES_CUSTOM_DOMAIN,HAS_RELEASES_LARGE,HAS_CODESPACES,HAS_MAVEN_PACKAGES,HAS_MACOS_RUNNERS\n";
+
+  // Sort results by cohort, then by weight descending
+  const sortedResults = results.sort((a, b) => {
+    if (a.cohort !== b.cohort) {
+      return a.cohort.localeCompare(b.cohort);
+    }
+    return b.cohortWeight - a.cohortWeight;
+  });
+
+  for (const result of sortedResults) {
+    const escapedSummary = result.summary.replace(/"/g, '""');
+    const escapedReasons = result.migrationReasons.replace(/"/g, '""');
+    
+    csv += `"${result.repositoryName}","${result.cohort}",${result.cohortWeight},${result.migrationWeight},"${escapedReasons}","${escapedSummary}",${result.featureGapCount},`;
+    csv += `${result.HAS_APP_INSTALLATIONS},${result.HAS_GIT_LFS_OBJECTS},${result.HAS_PACKAGES},${result.HAS_PROJECTS},${result.HAS_CUSTOM_PROPERTIES},${result.HAS_RULESETS},`;
+    csv += `${result.HAS_SECRETS},${result.HAS_ENVIRONMENTS},${result.HAS_SELF_HOSTED_RUNNERS},${result.HAS_WEBHOOKS},${result.HAS_DISCUSSIONS},${result.HAS_DEPLOY_KEYS},`;
+    csv += `${result.HAS_PAGES_CUSTOM_DOMAIN},${result.HAS_RELEASES_LARGE},${result.HAS_CODESPACES},${result.HAS_MAVEN_PACKAGES},${result.HAS_MACOS_RUNNERS}\n`;
+  }
+
+  return csv;
 }

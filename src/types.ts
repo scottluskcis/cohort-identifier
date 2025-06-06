@@ -137,3 +137,30 @@ export interface MacOsRunnerDetail {
   "Runner type": string;
   "Runtime OS": string;
 }
+
+export interface CohortDetail {
+  repositoryName: string;
+  cohort: string;
+  cohortWeight: number;
+  migrationWeight: number;
+  migrationReasons: string;
+  summary: string;
+  featureGapCount: number;
+  HAS_APP_INSTALLATIONS: boolean;
+  HAS_GIT_LFS_OBJECTS: boolean;
+  HAS_PACKAGES: boolean;
+  HAS_PROJECTS: boolean;
+  HAS_CUSTOM_PROPERTIES: boolean;
+  HAS_RULESETS: boolean;
+  HAS_SECRETS: boolean;
+  HAS_ENVIRONMENTS: boolean;
+  HAS_SELF_HOSTED_RUNNERS: boolean;
+  HAS_WEBHOOKS: boolean;
+  HAS_DISCUSSIONS: boolean;
+  HAS_DEPLOY_KEYS: boolean;
+  HAS_PAGES_CUSTOM_DOMAIN: boolean;
+  HAS_RELEASES_LARGE: boolean;
+  HAS_CODESPACES: boolean;
+  HAS_MAVEN_PACKAGES: boolean;
+  HAS_MACOS_RUNNERS: boolean;
+}
