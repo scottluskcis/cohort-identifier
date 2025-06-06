@@ -42,6 +42,7 @@ const CONFIG = {
     CODESPACES: 6,
     MAVEN_PACKAGES: 8,
     MACOS_RUNNERS: 9,
+    IS_ARCHIVED: 5,
   },
 
   // Thresholds for cohort assignment
@@ -89,7 +90,11 @@ interface CohortSummary {
  * Check if a repository is archived
  */
 function isArchived(repo: AllAnalysisDetails | AnalysisDetails): boolean {
-  return repo.isArchived === "true" || repo.isArchived === "1";
+  return (
+    repo.isArchived === "true" ||
+    repo.isArchived === "TRUE" ||
+    repo.isArchived === "1"
+  );
 }
 
 /**
@@ -219,6 +224,11 @@ function calculateMigrationWeight(
     weight += CONFIG.WEIGHTS.RELEASES_LARGE;
   }
 
+  // Check if repository is archived
+  if (isArchived(repo)) {
+    weight += CONFIG.WEIGHTS.IS_ARCHIVED;
+  }
+
   return weight;
 }
 
@@ -301,6 +311,10 @@ function getMigrationReasons(
     toNumber(repo["repository-releases-gt-5gb"]) > 0
   ) {
     reasons.push(`Large releases >5GB (${repo["repository-releases-gt-5gb"]})`);
+  }
+
+  if (isArchived(repo)) {
+    reasons.push(`Repository is archived`);
   }
 
   return reasons;
@@ -599,6 +613,7 @@ function hasFeatureFlags(
   HAS_CODESPACES: boolean;
   HAS_MAVEN_PACKAGES: boolean;
   HAS_MACOS_RUNNERS: boolean;
+  HAS_IS_ARCHIVED: boolean;
 } {
   return {
     HAS_APP_INSTALLATIONS: toNumber(repo.app_installations) > 0,
@@ -626,6 +641,7 @@ function hasFeatureFlags(
     HAS_CODESPACES: hasCodespace,
     HAS_MAVEN_PACKAGES: hasMaven,
     HAS_MACOS_RUNNERS: hasMacOs,
+    HAS_IS_ARCHIVED: isArchived(repo),
   };
 }
 
@@ -726,7 +742,7 @@ export function exportDetailedToCsv(results: CohortDetail[]): string {
   csv +=
     "HAS_SECRETS,HAS_ENVIRONMENTS,HAS_SELF_HOSTED_RUNNERS,HAS_WEBHOOKS,HAS_DISCUSSIONS,HAS_DEPLOY_KEYS,";
   csv +=
-    "HAS_PAGES_CUSTOM_DOMAIN,HAS_RELEASES_LARGE,HAS_CODESPACES,HAS_MAVEN_PACKAGES,HAS_MACOS_RUNNERS\n";
+    "HAS_PAGES_CUSTOM_DOMAIN,HAS_RELEASES_LARGE,HAS_CODESPACES,HAS_MAVEN_PACKAGES,HAS_MACOS_RUNNERS,HAS_IS_ARCHIVED\n";
 
   // Sort results by cohort, then by weight descending
   const sortedResults = results.sort((a, b) => {
@@ -743,7 +759,7 @@ export function exportDetailedToCsv(results: CohortDetail[]): string {
     csv += `"${result.repositoryName}","${result.cohort}",${result.cohortWeight},${result.migrationWeight},"${escapedReasons}","${escapedSummary}",${result.featureGapCount},`;
     csv += `${result.HAS_APP_INSTALLATIONS},${result.HAS_GIT_LFS_OBJECTS},${result.HAS_PACKAGES},${result.HAS_PROJECTS},${result.HAS_CUSTOM_PROPERTIES},${result.HAS_RULESETS},`;
     csv += `${result.HAS_SECRETS},${result.HAS_ENVIRONMENTS},${result.HAS_SELF_HOSTED_RUNNERS},${result.HAS_WEBHOOKS},${result.HAS_DISCUSSIONS},${result.HAS_DEPLOY_KEYS},`;
-    csv += `${result.HAS_PAGES_CUSTOM_DOMAIN},${result.HAS_RELEASES_LARGE},${result.HAS_CODESPACES},${result.HAS_MAVEN_PACKAGES},${result.HAS_MACOS_RUNNERS}\n`;
+    csv += `${result.HAS_PAGES_CUSTOM_DOMAIN},${result.HAS_RELEASES_LARGE},${result.HAS_CODESPACES},${result.HAS_MAVEN_PACKAGES},${result.HAS_MACOS_RUNNERS},${result.HAS_IS_ARCHIVED}\n`;
   }
 
   return csv;

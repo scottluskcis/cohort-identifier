@@ -163,4 +163,5 @@ export interface CohortDetail {
   HAS_CODESPACES: boolean;
   HAS_MAVEN_PACKAGES: boolean;
   HAS_MACOS_RUNNERS: boolean;
+  HAS_IS_ARCHIVED: boolean;
 }
