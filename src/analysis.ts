@@ -138,7 +138,9 @@ function hasMacOsRunners(
   repoName: string,
   macOsRunnerDetails: MacOsRunnerDetail[]
 ): boolean {
-  return macOsRunnerDetails.some((runner) => runner["Source repository"] === repoName);
+  return macOsRunnerDetails.some(
+    (runner) => runner["Source repository"] === repoName
+  );
 }
 
 /**
@@ -417,7 +419,13 @@ export function analyzeRepositories(data: LoadedData): CohortResult[] {
       allReasons.push(`macOS runners detected`);
     }
 
-    const cohort = assignCohort(repo, migrationWeight, hasMaven, hasCodespace, hasMacOs);
+    const cohort = assignCohort(
+      repo,
+      migrationWeight,
+      hasMaven,
+      hasCodespace,
+      hasMacOs
+    );
     const summary = generateSummary(cohort, allReasons, migrationWeight);
 
     results.push({

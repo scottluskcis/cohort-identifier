@@ -24,7 +24,9 @@ export function main(): void {
     console.log(
       `- Analysis Formatted: ${data.analysisFormatted.length} records`
     );
-    console.log(`- macOS Runner Details: ${data.macOsRunnerDetails.length} records`);
+    console.log(
+      `- macOS Runner Details: ${data.macOsRunnerDetails.length} records`
+    );
     console.log("");
 
     // Run the cohort analysis
