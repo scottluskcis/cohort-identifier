@@ -1,12 +1,6 @@
 import { readFileSync } from "fs";
 import { parse } from "csv-parse/sync";
-import {
-  AllAnalysisDetails,
-  PackageDetail,
-  CodespaceDetail,
-  AnalysisDetails,
-  MacOsRunnerDetail,
-} from "./types.js";
+import { RepositoryAnalysis } from "./types.js";
 
 /**
  * Generic function to read and parse CSV files
@@ -15,7 +9,13 @@ import {
  */
 function readCsvFile<T>(filePath: string): T[] {
   try {
-    const fileContent = readFileSync(filePath, "utf-8");
+    let fileContent = readFileSync(filePath, "utf-8");
+
+    // Remove BOM if present
+    if (fileContent.charCodeAt(0) === 0xfeff) {
+      fileContent = fileContent.slice(1);
+    }
+
     const records = parse(fileContent, {
       columns: true, // Use first row as headers
       skip_empty_lines: true,
@@ -24,95 +24,43 @@ function readCsvFile<T>(filePath: string): T[] {
 
     return records as T[];
   } catch (error) {
-    console.error(`Error reading CSV file: ${error}`);
+    console.error(`Error reading CSV file ${filePath}: ${error}`);
     throw error;
   }
 }
 
 /**
- * Reads GHEC analysis data from CSV file
- * @param filePath - Path to the ghec-analysis.csv file
- * @returns Array of AllAnalysisDetails objects
+ * Reads the unified repository analysis data from CSV file
+ * @param filePath - Path to the repository_analysis_all.csv file
+ * @returns Array of RepositoryAnalysis objects
  */
-export function readGhecAnalysis(
-  filePath: string = "data/ghec-analysis.csv"
-): AllAnalysisDetails[] {
-  return readCsvFile<AllAnalysisDetails>(filePath);
+export function readRepositoryAnalysis(
+  filePath: string = "data/repository_analysis_all.csv"
+): RepositoryAnalysis[] {
+  console.log(`Reading repository analysis data from: ${filePath}`);
+  const data = readCsvFile<RepositoryAnalysis>(filePath);
+  console.log(`Loaded ${data.length} repository records`);
+  return data;
 }
 
 /**
- * Reads package details from CSV file
- * @param filePath - Path to the maven-packages.csv file
- * @returns Array of PackageDetail objects
- */
-export function readPackageDetail(
-  filePath: string = "data/maven-packages.csv"
-): PackageDetail[] {
-  return readCsvFile<PackageDetail>(filePath);
-}
-
-/**
- * Reads codespaces usage data from CSV file
- * @param filePath - Path to the codespaces-usage.csv file
- * @returns Array of CodespaceDetail objects
- */
-export function readCodespacesDetail(
-  filePath: string = "data/codespaces-usage.csv"
-): CodespaceDetail[] {
-  return readCsvFile<CodespaceDetail>(filePath);
-}
-
-/**
- * Reads analysis formatted data from CSV file
- * @param filePath - Path to the combined-formatted-analysis.csv file
- * @returns Array of AnalysisDetails objects
- */
-export function readAnalysisFormatted(
-  filePath: string = "data/combined-formatted-analysis.csv"
-): AnalysisDetails[] {
-  return readCsvFile<AnalysisDetails>(filePath);
-}
-
-/**
- * Reads macOS runner details from CSV file
- * @param filePath - Path to the macos-runners.csv file
- * @returns Array of MacOsRunnerDetail objects
- */
-export function readMacOsRunnerDetail(
-  filePath: string = "data/macos-runners.csv"
-): MacOsRunnerDetail[] {
-  return readCsvFile<MacOsRunnerDetail>(filePath);
-}
-
-/**
- * Interface for the combined data object
+ * Interface for the loaded data (simplified for single file approach)
  */
 export interface LoadedData {
-  analysisDetails: AllAnalysisDetails[];
-  packageDetails: PackageDetail[];
-  codespaceDetails: CodespaceDetail[];
-  analysisFormatted: AnalysisDetails[];
-  macOsRunnerDetails: MacOsRunnerDetail[];
+  repositories: RepositoryAnalysis[];
 }
 
 /**
- * Loads all data from CSV files
- * @returns Object containing all loaded data
+ * Loads all data from the single CSV file
+ * @param filePath - Optional custom path to the CSV file
+ * @returns Object containing loaded repository data
  */
-export function loadData(): LoadedData {
+export function loadData(filePath?: string): LoadedData {
   try {
-    const analysisDetails = readGhecAnalysis();
-    const packageDetails = readPackageDetail();
-    const codespaceDetails = readCodespacesDetail();
-    const analysisFormatted = readAnalysisFormatted();
-    const macOsRunnerDetails = readMacOsRunnerDetail();
+    const repositories = readRepositoryAnalysis(filePath);
 
     return {
-      analysisDetails,
-      packageDetails,
-      codespaceDetails,
-      analysisFormatted,
-      macOsRunnerDetails,
+      repositories,
     };
   } catch (error) {
     console.error("Error loading data:", error);
