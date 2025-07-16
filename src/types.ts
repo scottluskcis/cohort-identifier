@@ -1,96 +1,13 @@
-export interface AllAnalysisDetails {
-  Org_Name: string;
-  Repo_Name: string;
-  Is_Empty: string;
-  Last_Push: string;
-  Last_Update: string;
-  isFork: string;
-  isArchived: string;
-  Repo_Size_mb: string;
-  Record_Count: string;
-  Collaborator_Count: string;
-  Protected_Branch_Count: string;
-  PR_Review_Count: string;
-  Milestone_Count: string;
-  Issue_Count: string;
-  PR_Count: string;
-  PR_Review_Comment_Count: string;
-  Commit_Comment_Count: string;
-  Issue_Comment_Count: string;
-  Issue_Event_Count: string;
-  Release_Count: string;
-  Project_Count: string;
-  Branch_Count: string;
-  Tag_Count: string;
-  Discussion_Count: string;
-  Has_Wiki: string;
-  Full_URL: string;
-  Migration_Issue: string;
-  Created: string;
-  issues_linked_to_projects: string;
-  unique_projects_linked_by_issues: string;
-  projects_linked_to_repo: string;
-  app_installations: string;
-  "repository-custom-properties": string;
-  "repository-forks": string;
-  "repository-rulesets": string;
-  watchers: string;
-  "repository-code-scanning-analyses": string;
-  "repository-webhooks": string;
-  "repository-code-scanning-alerts": string;
-  "repository-secret-scanning-alerts": string;
-  "repository-actions-workflow-runs": string;
-  "repository-code-scanning-default-setup": string;
-  "repository-dependabot-alerts": string;
-  "repository-packages": string;
-  "repository-releases": string;
-  "repository-disk-usage": string;
-  "repository-deployments": string;
-  "repository-environments": string;
-  "git-lfs-objects": string;
-  "repository-actions-secrets": string;
-  "repository-actions-self-hosted-runners": string;
-  "repository-dependabot-secrets": string;
-  "repository-actions-variables": string;
-  "git-submodules": string;
-  "repository-discussions": string;
-  "repository-deploy-keys": string;
-  "repository-pages-customdomain": string;
-  "repository-pinned-issues": string;
-}
+/**
+ * Type definitions for the cohort-identifier application
+ * Refactored to work with a single repository_analysis_all.csv file
+ */
 
-export interface PackageDetail {
-  "Package Name": string;
-  "Package Type": string;
-  "Repo Name": string;
-  "Repo Archived": string;
-  "Repo Visibility": string;
-  "Downloads Count": string;
-  "Last Published": string;
-  "Latest Version": string;
-  "Latest Version File Size (bytes)": string;
-  "Latest Version File Size": string;
-  "Total All Versions": string;
-  "Total All Asset Count": string;
-  "Total All Size (bytes)": string;
-  "Total All Size": string;
-}
-
-export interface CodespaceDetail {
-  "Repository Name": string;
-  "Codespace Name": string;
-  State: string;
-  "Machine Name": string;
-  "CPU Size": string;
-  "Memory Size (GB)": string;
-  "Storage (GB)": string;
-  "Billable Owner": string;
-  Owner: string;
-  "Last Used At": string;
-  "Created At": string;
-}
-
-export interface AnalysisDetails {
+/**
+ * Interface for the unified repository analysis data from repository_analysis_all.csv
+ */
+export interface RepositoryAnalysis {
+  Enterprise: string;
   Org_Name: string;
   Repo_Name: string;
   isArchived: string;
@@ -126,20 +43,21 @@ export interface AnalysisDetails {
   "repository-pages-customdomain": string;
   "repository-pinned-issues": string;
   has_unmigratable: string;
+  has_maven_packages: string;
+  maven_package_count: string;
+  has_codespaces: string;
+  codespace_count: string;
+  codespace_user_count: string;
+  has_macos_runners: string;
 }
 
-export interface MacOsRunnerDetail {
-  Workflow: string;
-  "Source repository": string;
-  "Total minutes": string;
-  "Workflow runs": string;
-  Jobs: string;
-  "Runner type": string;
-  "Runtime OS": string;
-}
-
+/**
+ * Interface for cohort analysis results
+ */
 export interface CohortDetail {
   repositoryName: string;
+  organizationName: string;
+  enterpriseName: string;
   cohort: string;
   cohortWeight: number;
   migrationWeight: number;
@@ -164,4 +82,41 @@ export interface CohortDetail {
   HAS_MAVEN_PACKAGES: boolean;
   HAS_MACOS_RUNNERS: boolean;
   HAS_IS_ARCHIVED: boolean;
+  HAS_EXTERNAL_COLLABORATORS: boolean;
+  HAS_UNMIGRATABLE: boolean;
+}
+
+/**
+ * Interface for cohort analysis summary
+ */
+export interface CohortSummary {
+  cohortName: string;
+  repositoryCount: number;
+  totalWeight: number;
+  averageWeight: number;
+}
+
+/**
+ * Interface for enterprise-specific cohort analysis summary
+ */
+export interface EnterpriseCohortSummary {
+  enterpriseName: string;
+  cohortSummaries: CohortSummary[];
+  totalRepositories: number;
+  totalWeight: number;
+  averageWeight: number;
+}
+
+/**
+ * Interface for simple cohort result (for backwards compatibility)
+ */
+export interface CohortResult {
+  repoName: string;
+  orgName: string;
+  enterpriseName: string;
+  cohort: string;
+  migrationWeight: number;
+  reasons: string[];
+  summary: string;
+  isArchived: boolean;
 }
