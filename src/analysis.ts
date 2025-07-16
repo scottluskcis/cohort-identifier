@@ -18,26 +18,26 @@ import {
 const CONFIG = {
   // Weight values for different migration blockers (higher = more complex)
   WEIGHTS: {
-    APP_INSTALLATIONS: 10,
-    GIT_LFS_OBJECTS: 1, // IGNORE - this is covered now and shouldn't be part of the weight
-    PACKAGES: 9,
-    PROJECTS: 7,
-    CUSTOM_PROPERTIES: 1, // IGNORE - this is covered now and shouldn't be part of the weight
-    RULESETS: 1, // IGNORE - this is covered now and shouldn't be part of the weight
-    SECRETS: 5,
-    ENVIRONMENTS: 4,
-    SELF_HOSTED_RUNNERS: 8,
-    WEBHOOKS: 3,
-    DISCUSSIONS: 2,
-    DEPLOY_KEYS: 3,
-    PAGES_CUSTOM_DOMAIN: 2,
-    RELEASES_LARGE: 7,
-    CODESPACES: 6,
-    MAVEN_PACKAGES: 8,
-    MACOS_RUNNERS: 9,
-    IS_ARCHIVED: 5,
-    EXTERNAL_COLLABORATORS: 3,
-    UNMIGRATABLE: 15, // Highest weight for unmigratable repos
+    APP_INSTALLATIONS: 15, // High concern - Users, teams, repository access
+    GIT_LFS_OBJECTS: 2, // Reduced - Migration support added
+    PACKAGES: 3, // Reduced - Migration support added
+    PROJECTS: 3, // Reduced - Partial migration support added
+    CUSTOM_PROPERTIES: 2, // Reduced - Migration support added
+    RULESETS: 3, // Reduced - Migration support added (with limitations)
+    SECRETS: 12, // High concern - Critical for teams, migration support covers names only
+    ENVIRONMENTS: 3, // Reduced - Migration support added
+    SELF_HOSTED_RUNNERS: 12, // High concern - Actions resources critical for teams
+    WEBHOOKS: 10, // High concern - Secrets type, critical for teams
+    DISCUSSIONS: 2, // Low concern - Not mentioned as high priority
+    DEPLOY_KEYS: 8, // Medium-high concern - Repository access related
+    PAGES_CUSTOM_DOMAIN: 2, // Low concern - Not mentioned as high priority
+    RELEASES_LARGE: 7, // Medium concern - Not mentioned but still significant
+    CODESPACES: 25, // Highest weight - Critical migration blocker
+    MAVEN_PACKAGES: 25, // Highest weight - Critical migration blocker
+    MACOS_RUNNERS: 25, // Highest weight - Critical migration blocker
+    IS_ARCHIVED: 1, // Low weight - Only basic migration for archived repos
+    EXTERNAL_COLLABORATORS: 12, // High concern - Users, teams, repository access
+    UNMIGRATABLE: 30, // Highest weight for unmigratable repos
   },
 
   // Thresholds for cohort assignment
